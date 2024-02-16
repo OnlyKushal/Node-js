@@ -7,9 +7,10 @@ const JWT = require("jsonwebtoken");
 const crypt = require("bcryptjs");
 require("dotenv").config();
 const jwtsecrate = process.env.JWT_SECRATE;
-const cookiePerser = require('cookie--parser');
+const cookie = require("cookie-parser");
+app.use(cookie());
+app.set('trust proxy', 1);
 
-// app.use(express.json());
 exports.register = async (req, res, next) => {
   const { email, name, password, address } = req.body;
   if (password.length < 6) {
@@ -52,12 +53,10 @@ exports.login = async (req, res) => {
   const response = await user.findOne({ email: email });
 
   if (response == null) {
-    res
-      .status(404)
-      .json({
-        message: "User not found",
-        error: "please enter a valid email address",
-      });
+    res.status(404).json({
+      message: "User not found",
+      error: "please enter a valid email address",
+    });
   } else {
     const validatePassword = crypt.compare(password, response.password);
 
@@ -78,7 +77,7 @@ exports.login = async (req, res) => {
             }
           );
 
-          res.cookie("JWT", token, {
+          res.cookie("jwt", token, {
             httpOnly: true,
             maxAge: expiredAt * 1000,
           });
@@ -89,7 +88,7 @@ exports.login = async (req, res) => {
               id: response._id,
               name: response.name,
             },
-            token: token,
+            token: token
           });
         } else {
           res.status(200).json({
@@ -105,4 +104,18 @@ exports.login = async (req, res) => {
         });
       });
   }
+};
+
+exports.update = (req, res) => {
+  
+  res.cookie("jwt", "hello", {
+    httpOnly: true,
+    maxAge: 6000 * 1000,
+  });
+
+  res.json({ message: req.cookies });
+};
+exports.new1 = (req, res) => {
+  res.send(req.cookies);
+  // console.log(JSON.stringify(req));
 };
